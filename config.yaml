@@ -1,0 +1,13 @@
+ollama:
+  base_url: "http://localhost:11434"
+  default_model: "llama3.1:8b"
+  temperature: 0.0
+    
+output:
+   folder_path: "outputs/"
+
+google_drive:
+    folder_id: ""
+     
+summary:  
+     sample_rows: 20
