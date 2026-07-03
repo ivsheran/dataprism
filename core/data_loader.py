@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from core.config_loader import ConfigLoader
 
 class DataLoader:
@@ -7,11 +8,18 @@ class DataLoader:
         self.sample_rows = config.summary_sample_rows
         self.df = None
 
-    def load_csv(self, file_path):
-        self.df = pd.read_csv(file_path)
-        return self.df
-
-
+    def load_file(self, file_path):
+        _, ext = os.path.splitext(file_path)
+        if ext.lower() == ".csv":
+            self.df = pd.read_csv(file_path)
+        elif ext.lower() == ".json":
+            self.df = pd.read_json(file_path)
+        elif ext.lower() == ".xlsx":
+            self.df = pd.read_excel(file_path)
+        else:
+            raise ValueError(f"Unsupported file type: {ext}. Please upload a CSV, JSON, or XLSX file.")
+        return self.df    
+    
     def get_summary(self):
         if self.df is None:
             raise ValueError("No data loaded. Please load a dataset first.")
