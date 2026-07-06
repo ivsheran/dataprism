@@ -25,7 +25,7 @@ class GradioLayout:
                 file_input = gr.File(
                     label="Upload your File",
                     file_types=[".csv", ".json", ".xlsx"], 
-                    type="file"
+                    type="filepath"
                     )
                 status = gr.Textbox(label="Status", interactive=False)
 

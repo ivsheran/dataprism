@@ -1,0 +1,11 @@
+gradio
+langchain
+langchain-core
+langchain-ollama
+langchain-community
+pandas
+matplotlib
+seaborn
+PyYAML
+python-dotenv
+openpyxl

@@ -1,12 +1,11 @@
 from langchain_ollama import ChatOllama
-from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain.agents import create_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from core.config_loader import ConfigLoader
 from core.chart_tools import ChartTools
 from core.data_loader import DataLoader
-
 
 class VisualizationAgent:
     def __init__(self, config: ConfigLoader, chart_tools: ChartTools, data_loader: DataLoader):
@@ -47,31 +46,38 @@ class VisualizationAgent:
     def _build_agent_executor(self):
         """Create an agent executor with the prompt and llm."""
         tools = self.chart_tools.get_tools()
-        agent = create_tool_calling_agent(
-            llm=self.llm,
+        return create_agent(
+            model=self.llm,
             tools=tools,
-            prompt=self.prompt
+            system_prompt = self.prompt_text
         )
-        return AgentExecutor(agent=agent, tools=tools, verbose=True)
     
     def run(self, question: str, session_id: str):
         dataset_summary = self.data_loader.get_summary()
+        system_with_data = self.prompt_text.replace("{dataset_summary}", dataset_summary)
 
-        agent_with_history = RunnableWithMessageHistory(
-            runnable=self.agent_executor,
-            get_session_history=lambda sid: self.history_store.setdefault(sid, InMemoryChatMessageHistory()),
-            input_messages_key="input",
-            history_messages_key="chat_history",
-        )
+        self.agent_executor = create_agent(
+            model=self.llm,
+            tools=self.chart_tools.get_tools(),
+            system_prompt=system_with_data
+            )
 
-        response = agent_with_history.invoke(
-            {"input": question, 
-             "dataset_summary": dataset_summary}, 
-             config ={"configurable": {"session_id": session_id}}
-        )
-
-        steps = response.get("intermediate_steps", [])
-        chart_path = steps[-1][1] if steps else None 
-        return response["output"], chart_path
-
-
+        if session_id not in self.history_store:
+            self.history_store[session_id] = []
+            
+        self.history_store[session_id].append({"role": "user", "content": question})
+        
+        inputs = {"messages": self.history_store[session_id]}
+        result = self.agent_executor.invoke(inputs)
+        
+        messages = result["messages"]
+        response = messages[-1].content
+        
+        self.history_store[session_id].append({"role": "assistant", "content": response})
+        
+        chart_path = None
+        for msg in messages:
+            if hasattr(msg, 'content') and msg.content and msg.content.endswith('.png'):
+                chart_path = msg.content
+            
+        return response, chart_path
