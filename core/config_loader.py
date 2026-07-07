@@ -17,6 +17,7 @@ class ConfigLoader:
         self.temperature=config['ollama']['temperature']
         self.output_folder_path=config['output']['folder_path']
         self.summary_sample_rows=config['summary']['sample_rows']
+        self.metric_columns=config['summary']['metric_columns']
 
         self.drive_folder_id=config['google_drive']['folder_id']
     

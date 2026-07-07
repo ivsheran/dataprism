@@ -53,7 +53,12 @@ class VisualizationAgent:
         )
     
     def run(self, question: str, session_id: str):
+        print(f"\n=== Session: {session_id} ===")
+        print(f"History length: {len(self.history_store.get(session_id, []))}")
+        print(f"History: {self.history_store.get(session_id, [])}")
         dataset_summary = self.data_loader.get_summary()
+        print(f"\n=== Dataset Summary ===\n{dataset_summary}\n=== End Summary ===")
+        
         system_with_data = self.prompt_text.replace("{dataset_summary}", dataset_summary)
 
         self.agent_executor = create_agent(
@@ -71,6 +76,8 @@ class VisualizationAgent:
         result = self.agent_executor.invoke(inputs)
         
         messages = result["messages"]
+        for msg in messages:
+            print(f"Message type: {type(msg).__name__}, content: {msg.content[:100] if msg.content else 'None'}")
         response = messages[-1].content
         
         self.history_store[session_id].append({"role": "assistant", "content": response})
@@ -79,5 +86,13 @@ class VisualizationAgent:
         for msg in messages:
             if hasattr(msg, 'content') and msg.content and msg.content.endswith('.png'):
                 chart_path = msg.content
+
+        last_chart = self.history_store.get(f"{session_id}_last_chart")
+        print(f"DEBUG: chart_path={chart_path}, last_chart={last_chart}")
+        if chart_path == last_chart:
+            chart_path = None
+        else:
+            if chart_path:
+                self.history_store[f"{session_id}_last_chart"] = chart_path
             
         return response, chart_path

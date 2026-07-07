@@ -1,13 +1,13 @@
 import gradio as gr
 
 CUSTOM_CSS = """
-    button[role="tab"] { color: #F8F0E2 !important; font-family: 'JetBrains Mono', monospace !important; background-color: transparent !important; font-size: 15px !important; padding: 10px 20px !important; }
-    button[role="tab"]:hover { color: #FF5992 !important; }
-    button[role="tab"][aria-selected="true"] { border-bottom: 2px solid #FF5992 !important; color: #FF5992 !important; }
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Mulish:wght@400;500&display=swap');
+
+    h1 { font-family: 'JetBrains Mono', monospace !important; font-size: 32px !important; color: #F8F0E2 !important; margin-top: 24px !important; margin-bottom: 4px !important; }
+    p { font-family: 'Mulish', sans-serif !important; font-size: 16px !important; color: #F8F0E2 !important; margin-bottom: 24px !important; }
+    label, .label-wrap span { font-family: 'Mulish', sans-serif !important; color: #F8F0E2 !important; }
     button.lg { background-color: #191919 !important; color: #FF5992 !important; font-family: 'JetBrains Mono', monospace !important; border: 1px solid #555555 !important; }
-    button.lg.secondary { background-color: transparent !important; color: #F8F0E2 !important; border: 1px solid #555555 !important; font-family: 'JetBrains Mono', monospace !important; }
-    label, .label-wrap span { color: #F8F0E2 !important; font-family: 'Mulish', sans-serif !important; }
-    .tabs { margin-top: 16px !important; }
+    button.lg.secondary { background-color: transparent !important; color: #F8F0E2 !important; font-family: 'JetBrains Mono', monospace !important; border: 1px solid #555555 !important; }
 """
 
 class GradioLayout:
@@ -22,22 +22,28 @@ class GradioLayout:
             gr.Markdown("Visuallize your data with natual language prompts.")
 
             with gr.Row():
-                file_input = gr.File(
-                    label="Upload your File",
-                    file_types=[".csv", ".json", ".xlsx"], 
-                    type="filepath"
-                    )
-                status = gr.Textbox(label="Status", interactive=False)
+                with gr.Column(scale=2):
+                    file_input = gr.File(label="Upload your File", file_types=[".csv", ".json", ".xlsx"], type="filepath")
+                with gr.Column(scale=2):
+                    status = gr.Textbox(label="Status", interactive=False)
 
             with gr.Row():
-                question_input = gr.Textbox(label="Ask a question about your data", placeholder="Type your question here...")
-                submit_button = gr.Button("Submit")
+                with gr.Column(scale=2):
+                    question_input = gr.Textbox(label="Ask a question about your data", placeholder="Type your question here...", lines=3)
+                with gr.Column(scale=2):
+                    pass 
+
+            with gr.Row():
+                with gr.Column(scale=2):
+                    submit_button = gr.Button("Submit")
+                with gr.Column(scale=2):
+                    pass
             
             with gr.Row():
                 with gr.Column():
                     output_chart = gr.Image(label="Answer", interactive=False, visible=False)
                 with gr.Column():
-                    chat = gr.Chatbot(label="Chat with your data", elem_id="chatbot", visible=False)
+                    chat = gr.Chatbot(label="Chat with your data", elem_id="chatbot", visible=False, height=600)
 
             with gr.Row():
                 clear_button = gr.Button(value="Clear Chat", visible=False)

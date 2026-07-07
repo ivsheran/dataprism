@@ -19,9 +19,11 @@ class ChartTools:
         def bar_chart(x_col: str, y_col: str) -> str:
             """Use when user wants to compare values across categories such as regions, products, types. Example: 'Show me a bar chart of sales by region.'"""
             plt.figure(figsize=(10, 6))
-            sns.barplot(data=df, x=x_col, y=y_col)
+            agg_df = df.groupby(x_col)[y_col].sum().reset_index()
+            sns.barplot(data=agg_df, x=x_col, y=y_col)
             plt.title(f'Bar Chart of {y_col} by {x_col}')
             plt.xticks(rotation=45)
+            plt.ticklabel_format(style='plain', axis='y')
             plt.tight_layout()
             plt.savefig(f"{self.config.output_folder_path}bar_chart_{x_col}_{y_col}.png")
             plt.close()
@@ -33,8 +35,10 @@ class ChartTools:
         def line_chart(x_col: str, y_col: str) -> str:
             """Use when user wants to show trends over time or continuous data. Example: 'Show me a line chart of sales over time.'"""
             plt.figure(figsize=(10, 6))
-            sns.lineplot(data=df, x=x_col, y=y_col)
+            agg_df = df.groupby(x_col)[y_col].sum().reset_index()
+            sns.lineplot(data=agg_df, x=x_col, y=y_col)
             plt.title(f'Line Chart of {y_col} over {x_col}')
+            plt.ticklabel_format(style='plain', axis='y')
             plt.tight_layout()
             plt.savefig(f"{self.config.output_folder_path}line_chart_{x_col}_{y_col}.png")
             plt.close()
@@ -60,6 +64,7 @@ class ChartTools:
             plt.figure(figsize=(10, 6))
             sns.scatterplot(data=df, x=x_col, y=y_col)
             plt.title(f'Correlation of {y_col} vs. {x_col}')
+            plt.ticklabel_format(style='plain', axis='y')
             plt.tight_layout()
             plt.savefig(f"{self.config.output_folder_path}scatter_plot_{x_col}_{y_col}.png")
             plt.close()
@@ -85,6 +90,7 @@ class ChartTools:
             sns.boxplot(data=df, x=x_col, y=y_col)
             plt.title(f'Box Plot of {y_col} by {x_col}')
             plt.xticks(rotation=45)
+            plt.ticklabel_format(style='plain', axis='y')
             plt.tight_layout()
             plt.savefig(f"{self.config.output_folder_path}box_plot_{x_col}_{y_col}.png")
             plt.close()

@@ -35,11 +35,17 @@ def main():
                 history = []
             if question is None or question.strip() == "":
                 return history, None, gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)
+            
             try:
                 response, chart_path = visualization_agent.run(question, session_id="dataprism_session")
                 history.append({"role": "user", "content": question})
                 history.append({"role": "assistant", "content": response})
-                return history, chart_path, gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+
+                if chart_path:
+                    return history, chart_path, gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+                else:
+                    return history, gr.update(), gr.update(), gr.update(visible=True), gr.update(visible=True)
+
             except Exception as e:
                 history.append({"role": "assistant", "content": f"Error: {str(e)}"})
                 return history, None, gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)
