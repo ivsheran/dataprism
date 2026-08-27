@@ -11,4 +11,4 @@ google_drive:
      
 summary:  
      sample_rows: 20
-     metric_columns: ["Sales"]
+     #metric_columns: ["Sales"]
