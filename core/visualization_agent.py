@@ -56,6 +56,7 @@ class VisualizationAgent:
         print(f"\n=== Session: {session_id} ===")
         print(f"History length: {len(self.history_store.get(session_id, []))}")
         print(f"History: {self.history_store.get(session_id, [])}")
+
         dataset_summary = self.data_loader.get_summary()
         print(f"\n=== Dataset Summary ===\n{dataset_summary}\n=== End Summary ===")
         
@@ -70,22 +71,38 @@ class VisualizationAgent:
         if session_id not in self.history_store:
             self.history_store[session_id] = []
             
-        self.history_store[session_id].append({"role": "user", "content": question})
-        
+        last_tool_result = self.history_store.get(f"{session_id}_last_tool_result")
+        print(f"DEBUG: last_tool_result being injected = {last_tool_result}")
+        if last_tool_result:
+            question_with_context = (
+                 f"(Reminder: this exact data was already computed in a previous step "
+                 f"and should be reused if relevant, without calling any tool:\n{last_tool_result}\n)\n\n"
+                 f"{question}")
+        else:
+            question_with_context = question
+
+        self.history_store[session_id].append({"role": "user", "content": question_with_context})
+
         inputs = {"messages": self.history_store[session_id]}
         result = self.agent_executor.invoke(inputs)
-        
+
         messages = result["messages"]
         for msg in messages:
             print(f"Message type: {type(msg).__name__}, content: {msg.content[:100] if msg.content else 'None'}")
         response = messages[-1].content
-        
+
         self.history_store[session_id].append({"role": "assistant", "content": response})
         
         chart_path = None
         for msg in messages:
-            if hasattr(msg, 'content') and msg.content and msg.content.endswith('.png'):
-                chart_path = msg.content
+            if hasattr(msg, 'content') and msg.content:
+                content = msg.content
+
+                if isinstance(content, str) and content.startswith(("Chart saved to ", "Aggregated data:")):
+                    self.history_store[f"{session_id}_last_tool_result"] = content
+
+                if isinstance(content, str) and content.startswith("Chart saved to "): 
+                    chart_path = content.split("Chart saved to ", 1)[1].splitlines()[0].strip()
 
         last_chart = self.history_store.get(f"{session_id}_last_chart")
         print(f"DEBUG: chart_path={chart_path}, last_chart={last_chart}")
@@ -96,3 +113,4 @@ class VisualizationAgent:
                 self.history_store[f"{session_id}_last_chart"] = chart_path
             
         return response, chart_path
+    
